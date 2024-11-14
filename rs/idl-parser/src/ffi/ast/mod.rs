@@ -15,7 +15,7 @@ pub struct ParseResult {
 #[repr(C)]
 pub struct Error {
     code: ErrorCode,
-    details: *const c_char,
+    details: *mut c_char,  // Изменил на *mut c_char для возможности изменения строки
 }
 
 #[repr(C)]
@@ -28,7 +28,6 @@ pub enum ErrorCode {
 }
 
 /// # Safety
-///
 /// See the safety documentation of [`slice::from_raw_parts`].
 #[no_mangle]
 pub unsafe extern "C" fn parse_idl(idl_ptr: *const u8, idl_len: u32) -> *mut ParseResult {
@@ -46,7 +45,7 @@ pub unsafe extern "C" fn parse_idl(idl_ptr: *const u8, idl_len: u32) -> *mut Par
     let result = ParseResult {
         error: Error {
             code: ErrorCode::Ok,
-            details: std::ptr::null(),
+            details: std::ptr::null_mut(),  // Изначально details - это null
         },
         program: Box::into_raw(Box::new(program)),
     };
@@ -71,19 +70,16 @@ fn create_parse_error(
 }
 
 /// # Safety
-///
 /// Pointer must be obtained from [`parse_idl`].
 #[no_mangle]
 pub unsafe extern "C" fn free_parse_result(result: *mut ParseResult) {
     if result.is_null() {
         return;
     }
-    unsafe {
-        let result = Box::from_raw(result);
-        if result.error.code != ErrorCode::Ok {
-            let details = CString::from_raw(result.error.details as *mut std::ffi::c_char);
-            drop(details);
-        }
+    let result = Box::from_raw(result);
+    if result.error.code != ErrorCode::Ok {
+        let _details = CString::from_raw(result.error.details);  // Автоматически освободит память
+        // CString автоматически освобождает память при выходе из области видимости
     }
 }
 
