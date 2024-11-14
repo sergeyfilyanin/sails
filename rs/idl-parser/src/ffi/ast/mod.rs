@@ -81,7 +81,7 @@ pub unsafe extern "C" fn free_parse_result(result: *mut ParseResult) {
 
     if result.error.code != ErrorCode::Ok {
         // Явное приведение типов с учетом платформы
-        let details = CString::from_raw(result.error.details as *mut u8);  // Кастим *mut i8 в *mut u8
+        let details = CString::from_raw(result.error.details.cast::<c_char>());
         drop(details);  // Память будет освобождена автоматически
     }
 }
