@@ -9,4 +9,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: rustup target add aarch64-unknown-linux-gnu
-      - run: cargo build -p sails-client-gen --release --target aarch64-unknown-linux-gnu
+      - run: cargo build --manifest-path net/rs/Cargo.toml --release --target aarch64-unknown-linux-gnu
