@@ -1,10 +1,7 @@
-use crate::ast;
 use std::{
     ffi::{c_char, CString},
     slice, str,
 };
-
-pub mod visitor;
 
 #[repr(C)]
 pub struct ParseResult {
@@ -15,7 +12,7 @@ pub struct ParseResult {
 #[repr(C)]
 pub struct Error {
     code: ErrorCode,
-    details: *mut c_char,  // Изменил на *mut c_char для возможности изменения строки
+    details: *mut c_char,  // Убедитесь, что это *mut c_char (или *mut i8)
 }
 
 #[repr(C)]
@@ -78,8 +75,9 @@ pub unsafe extern "C" fn free_parse_result(result: *mut ParseResult) {
     }
     let result = Box::from_raw(result);
     if result.error.code != ErrorCode::Ok {
-        let _details = CString::from_raw(result.error.details);  // Автоматически освободит память
-        // CString автоматически освобождает память при выходе из области видимости
+        // Преобразуем details обратно в CString, используя правильный тип
+        let _details = CString::from_raw(result.error.details as *mut c_char);
+        // CString автоматически освободит память, когда выйдем из области видимости
     }
 }
 
