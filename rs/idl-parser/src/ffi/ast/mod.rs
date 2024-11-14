@@ -12,7 +12,7 @@ pub struct ParseResult {
 #[repr(C)]
 pub struct Error {
     code: ErrorCode,
-    details: *mut c_char,  // Убедитесь, что это *mut c_char (или *mut i8)
+    details: *mut c_char, // Убедитесь, что это *mut c_char
 }
 
 #[repr(C)]
@@ -24,8 +24,6 @@ pub enum ErrorCode {
     NullPtr,
 }
 
-/// # Safety
-/// See the safety documentation of [`slice::from_raw_parts`].
 #[no_mangle]
 pub unsafe extern "C" fn parse_idl(idl_ptr: *const u8, idl_len: u32) -> *mut ParseResult {
     let idl_slice = unsafe { slice::from_raw_parts(idl_ptr, idl_len as usize) };
@@ -76,7 +74,7 @@ pub unsafe extern "C" fn free_parse_result(result: *mut ParseResult) {
     let result = Box::from_raw(result);
     if result.error.code != ErrorCode::Ok {
         // Преобразуем details обратно в CString, используя правильный тип
-        let _details = CString::from_raw(result.error.details as *mut c_char);
+        let _details = CString::from_raw(result.error.details as *mut c_char);  // Преобразуем к *mut c_char
         // CString автоматически освободит память, когда выйдем из области видимости
     }
 }
